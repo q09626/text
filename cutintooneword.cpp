@@ -13,6 +13,14 @@ using namespace std;
 using namespace	cv;
 int cut_number2(Mat& img);
 
+void identify_number_and_alphabet(Mat& img){
+
+}
+
+void identify_chinese_character(Mat& img){
+
+}
+
 //获取“天猫工商信息执照”文件夹下的图片文件
 vector<string> get_file_name(){
     vector<string> files;
@@ -46,7 +54,7 @@ vector<string> get_file_name(){
 }
 
 //已知img图片是一行数字和字母混合，此函数将每一数字和字母切分成单字符
-void cut_number(Mat& img, int pics){
+void cut_number(Mat& img){
 	int row = img.rows;
 	int col = img.cols;
 
@@ -93,28 +101,28 @@ void cut_number(Mat& img, int pics){
 		}
 	}
 
-	int m = 0;
+
 	for (int i = 0; i < x_point.size(); i++){
-		m++;
-		char name[20];
-		sprintf(name, "result/%d/n%d.jpg", pics, m);
+
 		Mat image_cut = Mat(img, Rect(x_point[i].x, y1, x_point[i].y-x_point[i].x+1, y2-y1+1));
+		
 		if (x_point[i].y-x_point[i].x+1 > 30){
 			int cut = cut_number2(image_cut);
-
 			Mat image_cut_1 = Mat(image_cut, Rect(0, 0, cut, image_cut.rows));
-			sprintf(name, "result/%d/n%d.jpg", pics, m);
 			resize(image_cut_1, image_cut_1, Size(24,24));
-			imwrite(name, image_cut_1);
+			//识别数字和字母的代码
+			identify_number_and_alphabet(image_cut_1);
 
-			m++;
 			Mat image_cut_2 = Mat(image_cut, Rect(cut+1, 0, image_cut.cols-cut-1, image_cut.rows));
-			sprintf(name, "result/%d/n%d.jpg", pics, m);
 			resize(image_cut_2, image_cut_2, Size(24,24));
-			imwrite(name, image_cut_2);
+			//识别数字和字母的代码
+			identify_number_and_alphabet(image_cut_1);
+
 		}else{
 			resize(image_cut, image_cut, Size(24,24));
-			imwrite(name, image_cut);
+			//识别数字和字母的代码
+			identify_number_and_alphabet(image_cut);
+
 		}
 	}
 
@@ -157,7 +165,7 @@ int cut_number2(Mat& img){
 }
 
 //已知img图片是一行汉字，此函数将每一汉子切分成单字符
-void cut_word(Mat& img, int pics){
+void cut_word(Mat& img){
 	int row = img.rows;
 	int col = img.cols;
 
@@ -232,11 +240,11 @@ void cut_word(Mat& img, int pics){
 	}
 
 	for (int i = 0; i < x_point.size(); i++){
-		char name[20];
-		sprintf(name, "result/%d/w%d.jpg", pics, i+1);
+		
 		Mat image_cut = Mat(img, Rect(x_point[i].x, y1, x_point[i].y-x_point[i].x+1, y2-y1+1));
 		resize(image_cut, image_cut, Size(24,24));
-		imwrite(name, image_cut);
+		//识别汉字的代码
+		identify_chinese_character(image_cut);
 
 	}
 
@@ -370,15 +378,10 @@ void pre_cut_bracket(Mat& img){
 
 int main(int argc, char* argv[]){
     
-
     vector<string> f = get_file_name();
 
 	char img_name[100];
 	for (int no = 0; no < f.size(); ++no){
-
-		char path[30];
-		sprintf(path, "mkdir result/%d", no);
-		system(path);
 
 		sprintf(img_name, "天猫工商信息执照/%s", f[no].c_str());
 		Mat img = imread(img_name);
@@ -398,14 +401,16 @@ int main(int argc, char* argv[]){
 			continue;
 		for (int i = 0; i < contours.size(); ++i){
 			Rect rect = boundingRect(contours[i]);
+
 			if (rect.width > 25 && rect.tl().x > 30 && rect.tl().y < 30){
 				Mat image_cut = Mat(img_binary, rect);
-				cut_number(image_cut, no);
+				cut_number(image_cut);
 			}
+			
 			if (rect.width > 100 && rect.tl().x > 30 && rect.tl().y > 30 && rect.tl().y < 60 && rect.height < 40){
 				Mat image_cut = Mat(img_binary, rect);
 				pre_cut_bracket(image_cut);
-				cut_word(image_cut, no);
+				cut_word(image_cut);
 			}
 		}
 
